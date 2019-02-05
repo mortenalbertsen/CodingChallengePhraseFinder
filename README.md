@@ -14,4 +14,10 @@ find an anagram of 1. (using the words in 2.) such that the MD5-hash of the anag
 
 ## Short description of solution
 
-Out of preference I chose to build this as an Xcode-project, initially targeting an iOS-app. 
+Out of preference I chose to build this as an Xcode-project, initially targeting an iOS-app, later targeting a traditional Mac-app. 
+
+
+
+The relevant logic for the "cracking" of the anagrams are isolated in class `AnagramHelper.swift`. 
+
+An instance of `AnagramHelper` is instantiated for every new inputphrase. 
