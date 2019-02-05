@@ -1,12 +1,14 @@
 import Foundation
 
-public class AnagramMapBuilder {
+public class AnagramHelper {
     
     var map = [String:Set<String>]()
     var lengthMap = [Int:Set<String>]()
     var characterFrequencyMapForInputPhrase = [Character:Int]()
+    let inputPhrase : String
     
     public init(wordsInLanguage: Set<String>, givenInputPhrase: String) {
+        self.inputPhrase = givenInputPhrase
         let preburnedWords = self.preBurn(words: wordsInLanguage, usingInputPhrase: givenInputPhrase)
         self.map = self.produceMap(fromWords: preburnedWords)
         self.lengthMap = self.produceLengthMap(forWords: preburnedWords)
@@ -49,6 +51,9 @@ public class AnagramMapBuilder {
         return map
     }
     
+    /**
+     Produces a mapping where all words of length n are stored in a Set under key n
+    */
     public func produceLengthMap(forWords inputWwords: Set<String>) -> [Int:Set<String>] {
         var lengthMap = [Int:Set<String>]()
         for wordLength in 1...100 {
@@ -63,9 +68,16 @@ public class AnagramMapBuilder {
         return lengthMap
     }
 
+    /*
+     A frequency map for an input string describes the number of times a character appears within the input string. Spaces are ignored.
+     Example: The input-string "anja" would produce the following frequencymap:
+     ["a"] -> 2
+     ["n"] -> 1
+     ["j"] -> 1
+    */
     private func produceCharacterFrequencyMap(forString input: String) -> [Character:Int] {
         var frequencyMap = [Character:Int]()
-        for character in input where character != " " {
+        for character in input.lowercased() where character != " " {
             if frequencyMap[character] == nil {
                 frequencyMap[character] = 0
             }
@@ -75,11 +87,14 @@ public class AnagramMapBuilder {
         return frequencyMap
     }
     
-    public func anagrams(forPhrase inputPhrase: String) -> Set<String> {
-        return findCandidates(forPhrase: inputPhrase, usingInterim: [String](), maximumDepth: 3, currentDepth: 0)
+    /**
+     Computes the set of anagrams derivable from inputPhrase.
+    */
+    public func anagrams() -> Set<String> {
+        return findCandidates(usingInterim: [String](), maximumDepth: 2, currentDepth: 0)
     }
     
-    private func findCandidates(forPhrase inputPhrase: String, usingInterim interimCandidate: [String], maximumDepth: Int, currentDepth : Int) -> Set<String> {
+    private func findCandidates(usingInterim interimCandidate: [String], maximumDepth: Int, currentDepth : Int) -> Set<String> {
         assert(currentDepth <= maximumDepth)
         
         let numberOfCharactersInputPhrase = inputPhrase.split(separator: " ").reduce(0) { acc, element in
@@ -93,7 +108,7 @@ public class AnagramMapBuilder {
         let remainingCharacters = numberOfCharactersInputPhrase - charactersUsedByInterimCandidate
         let availableCharacters = self.remainingAvailableCharacters(candidates: interimCandidate)
         for i in stride(from: remainingCharacters, through: 1, by: -1) {
-            if interimCandidate.count == maximumDepth - 1 {
+            if interimCandidate.count == maximumDepth {
                 // At this point we can prune a lot, since we know how many characters last word MUST have
                 if i != remainingCharacters {
                     break // OK, since we stride from remainingCharacters to 1, not opposite
@@ -105,7 +120,7 @@ public class AnagramMapBuilder {
             
             var possibleWords = Set<String>()
             
-            if interimCandidate.count == maximumDepth - 1 {
+            if interimCandidate.count == maximumDepth {
                 guard let wordsForKey = self.map[String(availableCharacters.sorted())] else {
                     continue
                 }
@@ -115,7 +130,7 @@ public class AnagramMapBuilder {
             }
             
             for word in possibleWords {
-                if currentDepth == maximumDepth - 1 {
+                if currentDepth == maximumDepth {
                     // At this stage, all words in possibleWords are all legal
                     candidateStrings.formUnion(possibleWords)
                     break
@@ -131,7 +146,7 @@ public class AnagramMapBuilder {
                 
                 var interimWordCandidates = interimCandidate
                 interimWordCandidates.append(word)
-                let candidatesForWord = self.findCandidates(forPhrase: inputPhrase, usingInterim: interimWordCandidates, maximumDepth: maximumDepth, currentDepth: currentDepth + 1)
+                let candidatesForWord = self.findCandidates(usingInterim: interimWordCandidates, maximumDepth: maximumDepth, currentDepth: currentDepth + 1)
                 
                 if candidatesForWord.isEmpty {
                     continue

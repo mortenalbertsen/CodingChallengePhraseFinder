@@ -11,7 +11,7 @@ import Cocoa
 class ViewController: NSViewController {
     @IBOutlet weak var textField: NSTextField!
     
-    var anagramBuilder : AnagramMapBuilder! = nil
+    var anagramBuilder : AnagramHelper! = nil
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -33,10 +33,10 @@ class ViewController: NSViewController {
             fatalError("Failed to lookup URL for wordlist")
         }
         let wordsFromLanguage = TextLoaderImplementation.loadWords(fromFile: fileURL)
-        self.anagramBuilder = AnagramMapBuilder(wordsInLanguage: wordsFromLanguage, givenInputPhrase: self.textField.stringValue)
+        self.anagramBuilder = AnagramHelper(wordsInLanguage: wordsFromLanguage, givenInputPhrase: self.textField.stringValue)
         Swift.print("Done initializing")
         
-        let results = self.anagramBuilder.anagrams(forPhrase: self.textField.stringValue)
+        let results = self.anagramBuilder.anagrams()
         Swift.print("Found \(results.count) results")
         let resultsAsSet = Set<String>(results)
         Swift.print("Unique combinations: \(resultsAsSet.count)")
@@ -48,23 +48,3 @@ class ViewController: NSViewController {
         }
     }
 }
-
-extension String {
-    
-    func runAsCommand() -> String {
-        let pipe = Pipe()
-        let task = Process()
-        task.launchPath = "/bin/sh"
-        task.arguments = ["-c", String(format:"%@", self)]
-        task.standardOutput = pipe
-        let file = pipe.fileHandleForReading
-        task.launch()
-        if let result = NSString(data: file.readDataToEndOfFile(), encoding: String.Encoding.utf8.rawValue) {
-            return result as String
-        }
-        else {
-            return "--- Error running command - Unable to initialize string from file data ---"
-        }
-    }
-}
-
